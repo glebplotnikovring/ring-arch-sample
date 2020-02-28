@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="viewModel"
+            type="com.example.sample.settings.ExampleViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/deviceNameView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Some Device" />
+
+        <TextView
+            android:id="@+id/settingsFeatureLabelView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:text="Feature:"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/deviceNameView" />
+
+        <TextView
+            android:id="@+id/settingsFeatureView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintLeft_toRightOf="@id/settingsFeatureLabelView"
+            app:layout_constraintTop_toBottomOf="@id/deviceNameView"
+            tools:text="true" />
+
+        <TextView
+            android:id="@+id/settingsReSetupLabelView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:text="Re-Setup count:"
+            app:layout_constraintLeft_toRightOf="@id/settingsFeatureView"
+            app:layout_constraintTop_toBottomOf="@id/deviceNameView" />
+
+        <TextView
+            android:id="@+id/settingsReSetupView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintLeft_toRightOf="@id/settingsReSetupLabelView"
+            app:layout_constraintTop_toBottomOf="@id/deviceNameView"
+            tools:text="1" />
+
+        <TextView
+            android:id="@+id/settingsUpdateView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Updating..."
+            android:visibility="@{viewModel.settingsUpdating ? View.VISIBLE : View.INVISIBLE}"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/settingsFeatureLabelView" />
+
+        <Button
+            android:id="@+id/updateReSetupView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:onClick="@{() -> viewModel.onChangeReSetup()}"
+            android:text="Update re-setup count"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/settingsUpdateView" />
+
+        <Button
+            android:id="@+id/analyticsToastView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:onClick="onShowAnalyticsToastClick"
+            android:text="Show Analytics Toast"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/updateReSetupView" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>
