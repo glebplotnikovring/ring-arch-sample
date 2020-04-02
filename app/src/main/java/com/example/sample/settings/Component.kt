@@ -1,5 +1,6 @@
 package com.example.sample.settings
 
+import com.example.arch.Component
 import com.example.sample.App
 import com.example.sample.Device
 import com.example.sample.Settings
@@ -14,7 +15,7 @@ annotation class ExampleScope
 
 @ExampleScope
 @Subcomponent(modules = [ExampleModule::class])
-interface ExampleComponent {
+interface ExampleComponent: Component {
     fun inject(exampleActivity: ExampleActivity)
 }
 

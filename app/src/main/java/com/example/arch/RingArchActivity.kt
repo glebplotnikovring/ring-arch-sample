@@ -1,42 +1,65 @@
 package com.example.arch
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import androidx.annotation.LayoutRes
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import com.ring.android.architecture.viewmodel.AbstractBaseViewModel
 
-// Is it necessary?
-abstract class RingArchActivity : AppCompatActivity() {
+abstract class RingArchActivity : FragmentActivity, RingArch {
+    private var tieOp: (() -> Unit)? = null
+    private val onCreates = mutableListOf<RingArchHandler.() -> Unit>()
 
-    private val onCreateInitList = mutableListOf<OnCreateInit>()
+    constructor() : super()
+    constructor(@LayoutRes layoutId: Int) : super(layoutId)
+
+    override fun runOnCreate(what: RingArchHandler.() -> Unit) {
+        if (lifecycle.currentState == Lifecycle.State.INITIALIZED) {
+            onCreates += what
+        }
+    }
+
+    protected fun <T : ViewDataBinding> setContentBinding(layoutId: Int): T {
+        return DataBindingUtil.inflate<T>(layoutInflater, layoutId, null, false)
+            .apply { setContentView(root) }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        onCreateInitList.forEach { it.run() }
+        onCreates.takeIf { it.isNotEmpty() }?.apply {
+            val handler = ActivityRingArchHandler { this@RingArchActivity }
+            forEach { it(handler) }
+            if (handler.view != null) setContentView(handler.view)
+        }?.clear()
+        tieOp?.invoke()
+        tieOp = null
     }
 
-    private class InitBinding<T : ViewDataBinding>(private val activity: RingArchActivity, private val layoutId: Int) : Lazy<T>, OnCreateInit {
-        override fun isInitialized(): Boolean {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    protected fun tieCompat(
+        viewModel: () -> AbstractBaseViewModel,
+        binding: () -> ViewDataBinding,
+        id: Int = 0
+    ) {
+        tieOp = {
+            binding().apply {
+                setVariable(id, viewModel())
+                setLifecycleOwner { lifecycle }
+            }
         }
-
-        init {
-            activity.onCreateInitList.add(this)
-        }
-
-        private lateinit var _value: T
-
-        override fun run() {
-            _value = DataBindingUtil.inflate(activity.layoutInflater, layoutId, null, false)
-        }
-
-        override val value: T
-            get() = if (!this::_value.isInitialized) throw RuntimeException() else _value
-
     }
 
-    protected fun <T : ViewDataBinding> binding(block: () -> Int) : Lazy<T> = InitBinding(this, block())
-    private interface OnCreateInit {
-        fun run()
+    protected fun tie(
+        viewModel: () -> RingArchViewModel,
+        binding: () -> ViewDataBinding,
+        id: Int = 0
+    ) {
+        tieOp = {
+            binding().apply {
+                setVariable(id, viewModel())
+                setLifecycleOwner { lifecycle }
+            }
+        }
     }
 }

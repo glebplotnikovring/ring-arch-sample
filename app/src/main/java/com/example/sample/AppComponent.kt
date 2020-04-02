@@ -1,5 +1,7 @@
 package com.example.sample
 
+import com.example.sample.activity.DummyComponent
+import com.example.sample.activity.DummyModule
 import com.example.sample.settings.ExampleComponent
 import com.example.sample.settings.ExampleModule
 import dagger.Component
@@ -15,6 +17,7 @@ import javax.inject.Singleton
 @Component(modules = [AppModule::class, AndroidInjectionModule::class])
 interface AppComponent : AndroidInjector<App> {
     fun exampleComponent(exampleModule: ExampleModule): ExampleComponent
+    fun dummyComponent(dummyModule: DummyModule): DummyComponent
 
     @Component.Builder
     interface Builder {

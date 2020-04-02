@@ -7,15 +7,13 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
-import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AlertDialog
-import androidx.databinding.DataBindingUtil
-import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Observer
-import com.example.arch.Components
-import com.example.arch.R
+import com.example.arch.BR
 import com.example.arch.RingArchActivity
+import com.example.arch.binding
+import com.example.arch.components
 import com.example.arch.databinding.ActivityExampleBinding
 import com.example.sample.Device
 import com.example.sample.get
@@ -46,27 +44,23 @@ class ExampleActivity : RingArchActivity() {
     @ExampleScope
     lateinit var exampleAnalytics: ExampleAnalytics // same instance, allows to preserve its state
 
-    private lateinit var binding: ActivityExampleBinding
+    // Init in super.onCreate() by extension
+    private val binding: ActivityExampleBinding by binding()
     // Just in case this is needed else-where here in class
     private val exampleDevice by lazy { intent.getSerializableExtra(DEVICE_SERIALIZABLE) as Device }
-    private val component by lazy {
-        // Components acts just like viewModelStore, but allows to store custom components
-        Components.of(this) {
-            // This factory will be called only once for creation ExampleComponent instance if it's not created yet
-            // whole dependency graph is stored here and user defined injection rules are safe
-            application.get().appComponent.exampleComponent(ExampleModule(exampleDevice))
-        }.get(ExampleComponent::class.java)
+    // Components acts just like viewModelStore, but allows to store custom components
+    // This factory will be called only once for creation ExampleComponent instance if it's not created yet
+    // whole dependency graph is stored here and user defined injection rules are safe
+    private val component by components({
+        application.get().appComponent.exampleComponent(ExampleModule(exampleDevice))
+    }) { it.inject(this) }
+
+    init {
+        tie({ exampleViewModel }, { binding }, BR.viewModel)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        component.inject(this)
-
-        // init data binding
-        // if you don't need a binding, just use regular setContentView
-        binding = setContentBinding<ActivityExampleBinding>(R.layout.activity_example)
-            .apply { viewModel = exampleViewModel }
-
         // subscribe to live data (can go directly to data binding)
         // if you don't need a view model, just don't use it
         exampleViewModel.device.observe(this, Observer { deviceNameView.text = it.name })
@@ -107,11 +101,6 @@ class ExampleActivity : RingArchActivity() {
         // This is the same instance on every rotate
         Toast.makeText(this, "$exampleAnalytics", LENGTH_SHORT).show()
     }
-
-    // just like setContentView, but setContentBinding
-    // setting this as lifecycleOwner is a bonus!
-    private fun <T : ViewDataBinding> setContentBinding(@LayoutRes layoutId: Int) =
-        DataBindingUtil.setContentView<T>(this, layoutId).also { it.lifecycleOwner = this }
 
 }
 

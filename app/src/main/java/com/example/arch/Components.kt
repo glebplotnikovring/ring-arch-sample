@@ -1,31 +1,30 @@
 package com.example.arch
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 
 // Very simple implementation of viewModelStore-like utility
 class Components private constructor(
-    private val activity: AppCompatActivity,
-    private val factory: Factory<*>?
+    private val activity: FragmentActivity,
+    private val factory: Factory<out Component>
 ) {
 
     companion object {
-        fun of(activity: AppCompatActivity, factory: Factory<*>?): Components =
+        fun of(activity: FragmentActivity, factory: Factory<out Component>): Components =
             Components(activity, factory)
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : Any> get(clazz: Class<T>): T = with(storage(activity)) {
+    fun <T: Component> get(clazz: Class<T>): T = with(storage(activity)) {
         var value = get(clazz)
         if (value == null) {
-            value = factory?.invoke(clazz)?.also { put(clazz, it) }
+            value = factory(clazz).also { put(clazz, it) }
         }
-        checkNotNull(value)
         value as T
     }
 
-    private fun storage(activity: AppCompatActivity): Storage =
+    private fun storage(activity: FragmentActivity): Storage =
         with(activity.supportFragmentManager) {
             findFragmentByTag("simpleComponentsStorage") as? Storage ?: Storage().also {
                 beginTransaction().add(it, "simpleComponentsStorage").commitNow()
@@ -50,3 +49,5 @@ class Components private constructor(
 }
 
 typealias Factory<T> = (Class<T>) -> T
+
+interface Component

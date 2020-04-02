@@ -16,10 +16,24 @@ buildscript {
 }
 
 allprojects {
+    def artifactoryProperties = new Properties()
+    def envUsername = System.getenv('ARTIFACTORY_USERNAME')
+    def envPassword = System.getenv('ARTIFACTORY_PASSWORD')
+    if (envUsername == null || envPassword == null) {
+        artifactoryProperties = new Properties()
+        artifactoryProperties.load(new FileInputStream(rootProject.file('artifactory.properties')))
+    }
+
     repositories {
         google()
         jcenter()
-        
+        maven {
+            url 'https://artifactory.svc.ring.com/android-apps'
+            credentials {
+                username envUsername ?: artifactoryProperties.getProperty('artifactory.username')
+                password envPassword ?: artifactoryProperties.getProperty('artifactory.password')
+            }
+        }
     }
 }
 
