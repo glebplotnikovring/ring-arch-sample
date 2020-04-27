@@ -14,6 +14,8 @@ annotation class DummyScope
 @Subcomponent(modules = [DummyModule::class])
 interface DummyComponent : Component {
     fun inject(bindingViewModelActivityAlternative2: BindingViewModelActivityAlternative2)
+    fun inject(onlyViewModelActivityAlternative2: OnlyViewModelActivityAlternative2)
+    fun inject(onlyViewModelActivityAlternative3: OnlyViewModelActivityAlternative3)
 }
 
 @Module

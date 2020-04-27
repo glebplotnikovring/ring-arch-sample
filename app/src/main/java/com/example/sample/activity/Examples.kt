@@ -5,7 +5,8 @@ import android.os.Bundle
 import androidx.databinding.ViewDataBinding
 import com.example.arch.*
 import com.example.arch.databinding.ActivityDummyBinding
-import com.example.sample.get
+import com.example.arch.databinding.ActivityStubBinding
+import com.example.sample.appComponent
 import com.ring.android.architecture.view.AbstractBaseActivity
 import com.ring.android.architecture.viewmodel.AbstractBaseViewModel
 import javax.inject.Inject
@@ -24,7 +25,7 @@ class SimpleActivity : AbstractBaseActivity<ViewDataBinding, StubViewModel>() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dummy)
         binding.root // NullPointerException
-        viewModel.stub() // this is not needed here but a reference exist
+        viewModel.stub() // there is no need in it here but a reference exist
     }
 }
 
@@ -93,6 +94,28 @@ class OnlyViewModelActivityAlternative : RingArchActivity(R.layout.activity_dumm
     }
 }
 
+class OnlyViewModelActivityAlternative2 : RingArchActivity(R.layout.activity_dummy) {
+    init {
+        component { appComponent().dummyComponent(DummyModule()) } whenReady { it.inject(this) }
+    }
+
+    @Inject
+    lateinit var viewModel: DummyViewModel
+}
+
+class OnlyViewModelActivityAlternative3 : RingArchActivity(R.layout.activity_dummy) {
+    private val component by component { appComponent().dummyComponent(DummyModule()) } whenReady { it.inject(this) }
+
+    @Inject
+    lateinit var viewModel: DummyViewModel
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // do something with a component reference here
+        component.inject(this)
+    }
+}
+
 class BindingViewModelActivity : AbstractBaseActivity<ActivityDummyBinding, StubViewModel>() {
     override val tag: String = ""
     override val layoutId: Int = R.layout.activity_dummy
@@ -107,14 +130,10 @@ class BindingViewModelActivity : AbstractBaseActivity<ActivityDummyBinding, Stub
 }
 
 class BindingViewModelActivityAlternative : RingArchActivity() {
-    private val binding by binding<ActivityDummyBinding>()
     @Inject
     lateinit var viewModelLazy: dagger.Lazy<StubViewModel>
     private val viewModel by viewModelUtils { viewModelLazy }
-
-    init {
-        tieCompat({ viewModel }, { binding }, 0)
-    }
+    private val binding by binding<ActivityStubBinding>() whenReady bindViewModelCompat { viewModel }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -124,16 +143,13 @@ class BindingViewModelActivityAlternative : RingArchActivity() {
 }
 
 class BindingViewModelActivityAlternative2 : RingArchActivity() {
-    private val binding by binding<ActivityDummyBinding>()
-    private val component by components({
-        application.get().appComponent.dummyComponent(DummyModule())
-    }) { it.inject(this) }
+    init {
+        component { appComponent().dummyComponent(DummyModule()) } whenReady { it.inject(this) }
+        binding<ActivityDummyBinding>() whenReady bindViewModel { viewModel }
+    }
+
     @Inject
     lateinit var viewModel: DummyViewModel
-
-    init {
-        tie({ viewModel }, { binding }, 0)
-    }
 }
 
 class StubViewModel(application: Application) : AbstractBaseViewModel(application) {

@@ -10,13 +10,10 @@ import android.widget.Toast.LENGTH_SHORT
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Observer
-import com.example.arch.BR
-import com.example.arch.RingArchActivity
-import com.example.arch.binding
-import com.example.arch.components
+import com.example.arch.*
 import com.example.arch.databinding.ActivityExampleBinding
 import com.example.sample.Device
-import com.example.sample.get
+import com.example.sample.appComponent
 import kotlinx.android.synthetic.main.activity_example.*
 import javax.inject.Inject
 
@@ -24,14 +21,9 @@ import javax.inject.Inject
  * Supports orientation changes
  */
 class ExampleActivity : RingArchActivity() {
-
-    companion object {
-        fun newIntent(context: Context, exampleDevice: Device) =
-            Intent(context, ExampleActivity::class.java).apply {
-                putExtra(DEVICE_SERIALIZABLE, exampleDevice)
-            }
-
-        private const val DEVICE_SERIALIZABLE = "extraDeviceSerializable"
+    init {
+        component { appComponent().exampleComponent(ExampleModule(exampleDevice)) } whenReady { it.inject(this) }
+        binding<ActivityExampleBinding>() whenReady bindViewModel { exampleViewModel }
     }
 
     // NOTE: Object instances are managed by dagger tool
@@ -44,20 +36,8 @@ class ExampleActivity : RingArchActivity() {
     @ExampleScope
     lateinit var exampleAnalytics: ExampleAnalytics // same instance, allows to preserve its state
 
-    // Init in super.onCreate() by extension
-    private val binding: ActivityExampleBinding by binding()
     // Just in case this is needed else-where here in class
     private val exampleDevice by lazy { intent.getSerializableExtra(DEVICE_SERIALIZABLE) as Device }
-    // Components acts just like viewModelStore, but allows to store custom components
-    // This factory will be called only once for creation ExampleComponent instance if it's not created yet
-    // whole dependency graph is stored here and user defined injection rules are safe
-    private val component by components({
-        application.get().appComponent.exampleComponent(ExampleModule(exampleDevice))
-    }) { it.inject(this) }
-
-    init {
-        tie({ exampleViewModel }, { binding }, BR.viewModel)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,5 +82,13 @@ class ExampleActivity : RingArchActivity() {
         Toast.makeText(this, "$exampleAnalytics", LENGTH_SHORT).show()
     }
 
+    companion object {
+        fun newIntent(context: Context, exampleDevice: Device) =
+            Intent(context, ExampleActivity::class.java).apply {
+                putExtra(DEVICE_SERIALIZABLE, exampleDevice)
+            }
+
+        private const val DEVICE_SERIALIZABLE = "extraDeviceSerializable"
+    }
 }
 
